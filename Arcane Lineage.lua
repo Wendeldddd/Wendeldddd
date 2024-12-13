@@ -260,23 +260,6 @@ PlayerSec:AddToggle({
     end
 })
 
-PlayerSec:AddToggle({
-    Name = "Heal At Doctor",
-        Default = false,
-    Callback = function()
-        local oldcframe = lp.Character.HumanoidRootPart.CFrame
-
-        lp.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").NPCs.Doctor.Head
-            .CFrame
-        task.wait(0.6)
-        fireproximityprompt(game:GetService("Workspace").NPCs.Doctor.Head.ProximityPrompt)
-        lp.PlayerGui:WaitForChild("NPCDialogue")
-        lp.PlayerGui.NPCDialogue.RemoteEvent:FireServer(lp.PlayerGui.NPCDialogue.BG.Options.Option)
-        task.wait(0.4)
-        lp.Character.HumanoidRootPart.CFrame = oldcframe
-        wait(20)
-        end
-})
 
 PlayerSec:AddToggle({
     Name = "Enable Walkspeed",
@@ -493,88 +476,133 @@ Combat:AddToggle({
     end
 })
 
+-- Variáveis principais
+local lp = game.Players.LocalPlayer
+local AutoAttack = false  -- Inicializa o Auto-Attack
+local MoveToUse = "Strike"  -- Move padrão
+local Boolerean = false  -- Controle do estado de combate
+
+-- Função para verificar se está em combate
+local function checkforfight()
+    Boolerean = game.Workspace.Living[lp.Name]:WaitForChild("FightInProgress").Value == true
+end
+
+-- Função para realizar o movimento automático até o inimigo
+local function MoveToTarget(target)
+    local targetPosition = target:FindFirstChild("HumanoidRootPart")
+    if targetPosition then
+        local tweenInfo = TweenInfo.new(
+            (Character.HumanoidRootPart.Position - targetPosition.Position).magnitude / 50,  -- Velocidade do movimento
+            Enum.EasingStyle.Linear, 
+            Enum.EasingDirection.InOut, 
+            -1, 
+            false
+        )
+        local tweenGoal = { CFrame = CFrame.new(targetPosition.Position) }
+        local tween = TweenService:Create(Character.HumanoidRootPart, tweenInfo, tweenGoal)
+        tween:Play()
+        tween.Completed:Wait()  -- Espera até que o movimento termine
+    end
+end
+
+-- Função para realizar o ataque
+local function performAttack(target)
+    local ohString1 = "Attack"
+    local ohString2 = tostring(MoveToUse)
+    local ohTable3 = { ["Attacking"] = target }
+
+    -- Verifica a energia do jogador
+    local energyText = lp.PlayerGui.HUD.Holder.EnergyOutline.Count.Text
+    local slashPos = string.find(energyText, "/")
+    local energy = tonumber(string.sub(energyText, 1, slashPos - 1))
+
+    if energy >= tonumber(lp.PlayerGui.StatMenu.SkillMenu.Actives[MoveToUse].Cost.Text) then
+        -- Executa o ataque com a habilidade selecionada
+        lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+
+        task.wait(1.5)
+        -- Executa novamente o ataque
+        lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+
+        task.wait(0.5)
+        
+        -- Ataque básico "Strike"
+        local ohString11 = "Attack"
+        local ohString22 = "Strike"
+        local ohTable33 = { ["Attacking"] = target }
+        lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString11, ohString22, ohTable33)
+    else
+        -- Ataque simples se não tiver energia suficiente
+        local ohString1 = "Attack"
+        local ohString2 = "Strike"
+        local ohTable3 = { ["Attacking"] = target }
+        lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+        task.wait()
+    end
+end
+
+-- Função de Auto-Attack Loop com Auto Move
+local function AutoAttackLoop()
+    while AutoAttack do
+        task.wait()
+
+        -- Verificar se o jogador está em combate
+        checkforfight()
+
+        task.wait(1)
+
+        if Boolerean == true then
+            local enemiesToAttack = {}
+
+            -- Procurar inimigos para atacar
+            for _, Enemies in next, game:GetService("Workspace").Living:GetDescendants() do
+                if Enemies:IsA("IntValue") and Enemies.Value == game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value then
+                    if Enemies.Parent.Name ~= lp.Name then
+                        table.insert(enemiesToAttack, Enemies.Parent.Name)  -- Adiciona inimigos à lista
+                    end
+                end
+            end
+
+            -- Mover para o inimigo e atacar
+            for _, enemyName in ipairs(enemiesToAttack) do
+                local enemy = game:GetService("Workspace").Living[enemyName]
+                if enemy then
+                    MoveToTarget(enemy)  -- Mover até o inimigo
+                    performAttack(enemy)  -- Realizar o ataque
+                end
+                task.wait(0.5)
+            end
+        end
+    end
+end
+
+-- Interface do CombatTab
 Combat:AddToggle({
     Name = "Auto-Attack",
     Default = false,
     Callback = function(Value)
-        getgenv().AutoAttack = (Value)
+        getgenv().AutoAttack = Value
 
-        pcall(function()
-            local function performAttack(target)
-                local MoveToUse = "Strike"  -- Defina o MoveToUse aqui (pode ser dinâmico com base no dropdown)
-                local ohString1 = "Attack"
-                local ohString2 = tostring(MoveToUse)
-                local ohTable3 = {
-                    ["Attacking"] = target
-                }
+        if AutoAttack then
+            OrionLib:MakeNotification({
+                Name = "Auto-Attack Activated",
+                Content = "Auto-Attack is now active.",
+                Image = "rbxassetid://12614663538",
+                Time = 5
+            })
 
-                local energyText = lp.PlayerGui.HUD.Holder.EnergyOutline.Count.Text
-                local slashPos = string.find(energyText, "/")
-                local energy = tonumber(string.sub(energyText, 1, slashPos - 1))
-
-                if energy >= tonumber(lp.PlayerGui.StatMenu.SkillMenu.Actives[MoveToUse].Cost.Text) then
-                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
-
-                    task.wait(1.5)
-                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
-                    task.wait(0.5)
-                    local ohString11 = "Attack"
-                    local ohString22 = "Strike"
-                    local ohTable33 = {
-                        ["Attacking"] = target
-                    }
-                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString11, ohString22, ohTable33)
-                else
-                    local ohString1 = "Attack"
-                    local ohString2 = "Strike"
-                    local ohTable3 = {
-                        ["Attacking"] = target
-                    }
-                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
-                    task.wait()
-                end
-            end
-
-            if AutoAttack then
-                OrionLib:MakeNotification({
-                    Name = "Warning:",
-                    Content =
-                    "If the auto attack doesn't work in the first fight after you enable it simply re-enable it and it should work from then on!",
-                    Image = "rbxassetid://12614663538",
-                    Time = 10
-                })
-                while AutoAttack do
-                    task.wait()
-                    checkforfight()
-                    task.wait(1.1)
-                    if Boolerean == true then
-                        local enemiesToAttack = {}
-                        for _, Enemies in next, game:GetService("Workspace").Living:GetDescendants() do
-                            if Enemies:IsA("IntValue") and Enemies.Value == game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value and Enemies.Parent.Name ~= lp.Name then
-                                table.insert(enemiesToAttack, Enemies.Parent.Name)
-
-                                for _, enemyName in ipairs(enemiesToAttack) do
-                                    local enemy = game:GetService("Workspace").Living[enemyName]
-                                    if enemy then
-                                        performAttack(enemy)
-                                    end
-                                    task.wait()
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end)
+            AutoAttackLoop()  -- Iniciar o loop de Auto-Attack
+        end
     end
 })
 
+-- Dropdown para escolher o movimento de Auto-Attack
 Combat:AddDropdown({
     Name = "Auto-Attack Move",
-    Default = "Strike",  -- Aqui pode ser o nome da habilidade padrão
-    Options = Moves,  -- Variável que contém os movimentos disponíveis
+    Default = "Strike",
+    Options = Moves,  -- Lista de habilidades ou movimentos disponíveis
     Callback = function(Value)
-        MoveToUse = Value
+        MoveToUse = Value  -- Atualiza a habilidade selecionada
     end
 })
 
