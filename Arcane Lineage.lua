@@ -212,10 +212,8 @@ for _, QuestNPC in next, game:GetService("Workspace").NPCs.Quest:GetChildren() d
 end
 
 
-local OrionLib = 
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = 
-OrionLib:MakeWindow({
+local Window = OrionLib:MakeWindow({
     Name = "Fool Hub | Arcane Lineage",
     HidePremium = false,
     SaveConfig = true,
