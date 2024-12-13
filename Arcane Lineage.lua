@@ -393,21 +393,26 @@ Combat:AddToggle({
     Save = true,
     Flag = "AutoDodge",
     Callback = function(Value)
-        if not AutoBlock then
-            getgenv().AutoDodge = (Value)
+        if not AutoBlock then  -- Verifica se o Auto-Block está desativado
+            getgenv().AutoDodge = (Value)  -- Define a variável global AutoDodge
 
-            while AutoDodge and game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress") do
-                task.wait()
-                local ohTable1 = {
-                    [1] = true,
-                    [2] = true
-                }
-                local ohString2 = "DodgeMinigame"
+            -- Loop enquanto o Auto-Dodge estiver ativado e o jogador estiver em combate
+            while AutoDodge do
+                -- Verifica se o jogador está em combate
+                if game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value == true then
+                    task.wait(0.1)  -- Aguarda um pequeno intervalo antes de realizar o Dodge
 
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohTable1, ohString2)
-                task.wait()
+                    -- Envia os parâmetros para o servidor para realizar o Dodge
+                    local ohTable1 = { [1] = true, [2] = true }
+                    local ohString2 = "DodgeMinigame"
+                    game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohTable1, ohString2)
+                else
+                    break  -- Sai do loop se não estiver em combate
+                end
+                task.wait(0.5)  -- Aguarda 0.5 segundos antes de tentar novamente
             end
         else
+            -- Notifica o jogador para desativar o Auto-Block antes de usar o Auto-Dodge
             OrionLib:MakeNotification({
                 Name = "Warning:",
                 Content = "Disable Auto-Block and Re-Enable this to use it",
@@ -542,10 +547,14 @@ Combat:AddToggle({
                     Image = "rbxassetid://12614663538",
                     Time = 10
                 })
+
+                -- Loop contínuo enquanto Auto-Attack estiver ativado
                 while AutoAttack do
                     task.wait()
                     checkforfight()  -- Verifica se está em combate
                     task.wait(1.1)
+
+                    -- Se o jogador estiver em combate, realiza o Auto-Attack
                     if Boolerean == true then
                         local enemiesToAttack = {}
 
@@ -570,6 +579,7 @@ Combat:AddToggle({
         end)
     end
 })
+
 
 -- Automation
 
