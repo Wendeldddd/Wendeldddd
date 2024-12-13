@@ -1,4 +1,4 @@
--- THIS SCRIPT WAS MADE FOR PERSONAL USE MEANING IT HAS VERY LITTLE OPTIMIZATION.
+
 
 repeat
     wait()
@@ -211,8 +211,11 @@ for _, QuestNPC in next, game:GetService("Workspace").NPCs.Quest:GetChildren() d
     end
 end
 
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/OneFool/intro/main/custom%20intro%20orion')))()
-local Window = OrionLib:MakeWindow({
+
+local OrionLib = 
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = 
+OrionLib:MakeWindow({
     Name = "Fool Hub | Arcane Lineage",
     HidePremium = false,
     SaveConfig = true,
