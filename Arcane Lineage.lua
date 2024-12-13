@@ -499,7 +499,77 @@ Combat:AddToggle({
     end
 })
 
+Combat:AddToggle({
+    Name = "Auto-Attack",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoAttack = Value
 
+        pcall(function()
+            -- Função para realizar o ataque
+            local function performAttack(target)
+                local ohString1 = "Attack"
+                local ohString2 = "Strike"  -- Sempre usará "Strike"
+                local ohTable3 = {
+                    ["Attacking"] = target
+                }
+
+                -- Verifica a energia do jogador
+                local energyText = lp.PlayerGui.HUD.Holder.EnergyOutline.Count.Text
+                local slashPos = string.find(energyText, "/")
+                local energy = tonumber(string.sub(energyText, 1, slashPos - 1))
+
+                if energy >= tonumber(lp.PlayerGui.StatMenu.SkillMenu.Actives[ohString2].Cost.Text) then
+                    -- Realiza o ataque com a habilidade "Strike"
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+
+                    task.wait(1.5)
+                    -- Realiza o ataque novamente
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+                    task.wait(0.5)
+                else
+                    -- Caso não tenha energia suficiente, realiza o ataque simples "Strike"
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, "Strike", ohTable3)
+                    task.wait()
+                end
+            end
+
+            -- Loop de Auto-Attack
+            if AutoAttack then
+                OrionLib:MakeNotification({
+                    Name = "Auto-Attack Activated",
+                    Content = "Auto-Attack with Strike is now active.",
+                    Image = "rbxassetid://12614663538",
+                    Time = 10
+                })
+                while AutoAttack do
+                    task.wait()
+                    checkforfight()  -- Verifica se está em combate
+                    task.wait(1.1)
+                    if Boolerean == true then
+                        local enemiesToAttack = {}
+
+                        -- Encontra os inimigos no combate atual
+                        for _, Enemies in next, game:GetService("Workspace").Living:GetDescendants() do
+                            if Enemies:IsA("IntValue") and Enemies.Value == game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value and Enemies.Parent.Name ~= lp.Name then
+                                table.insert(enemiesToAttack, Enemies.Parent.Name)  -- Adiciona inimigos encontrados à lista
+                            end
+                        end
+
+                        -- Ataca todos os inimigos encontrados
+                        for _, enemyName in ipairs(enemiesToAttack) do
+                            local enemy = game:GetService("Workspace").Living[enemyName]
+                            if enemy then
+                                performAttack(enemy)  -- Realiza o ataque no inimigo
+                            end
+                            task.wait()
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
 
 -- Automation
 
