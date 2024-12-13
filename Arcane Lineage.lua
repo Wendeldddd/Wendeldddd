@@ -260,8 +260,9 @@ PlayerSec:AddToggle({
     end
 })
 
-PlayerSec:AddButton({
+PlayerSec:AddToggle({
     Name = "Heal At Doctor",
+        Default = false,
     Callback = function()
         local oldcframe = lp.Character.HumanoidRootPart.CFrame
 
@@ -273,7 +274,8 @@ PlayerSec:AddButton({
         lp.PlayerGui.NPCDialogue.RemoteEvent:FireServer(lp.PlayerGui.NPCDialogue.BG.Options.Option)
         task.wait(0.4)
         lp.Character.HumanoidRootPart.CFrame = oldcframe
-    end
+        wait(20)
+        end
 })
 
 PlayerSec:AddToggle({
@@ -402,7 +404,7 @@ Combat:AddToggle({
         else
             OrionLib:MakeNotification({
                 Name = "Warning:",
-                Content = "Disable Auto-Block and Re-Enable this to use it",
+                Content = "Desabilite o bloqueio automático e habilite novamente para usá-lo",
                 Image = "rbxassetid://12614663538",
                 Time = 5
             })
@@ -499,6 +501,7 @@ Combat:AddToggle({
 
         pcall(function()
             local function performAttack(target)
+                local MoveToUse = "Strike"  -- Defina o MoveToUse aqui (pode ser dinâmico com base no dropdown)
                 local ohString1 = "Attack"
                 local ohString2 = tostring(MoveToUse)
                 local ohTable3 = {
@@ -568,8 +571,8 @@ Combat:AddToggle({
 
 Combat:AddDropdown({
     Name = "Auto-Attack Move",
-    Default = "",
-    Options = Moves,
+    Default = "Strike",  -- Aqui pode ser o nome da habilidade padrão
+    Options = Moves,  -- Variável que contém os movimentos disponíveis
     Callback = function(Value)
         MoveToUse = Value
     end
