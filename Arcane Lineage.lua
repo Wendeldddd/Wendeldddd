@@ -304,28 +304,40 @@ Combat:AddToggle({
 
         -- Loop contínuo enquanto Auto-Attack estiver ativado
         while AutoAttack do
-            task.wait(2)  
+                local args = {
+    [1] = "Attack",
+    [2] = "Strike",
+    [3] = {
+        ["Attacking"] = workspace.Living:FindFirstChild("Thief")
+    }
+}
 
-            -- Ataca o Slime
-            local Args = {
-                [1] = "Attack",
-                [2] = "Strike",
-                [3] = {
-                    ["Attacking"] = workspace.Living.Slime
-                }
-            }
-            game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(Args))
+game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
+  task.wait(1)
 
-            -- Ataca o Thief
-            local Args = {
-                [1] = "Attack",
-                [2] = "Strike",
-                [3] = {
-                    ["Attacking"] = workspace.Living.Thief
-                }
-            }
-            game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(Args))
-                    local args = {
+local args = {
+    [1] = "Attack",
+    [2] = "Strike",
+    [3] = {
+        ["Attacking"] = workspace.Living:FindFirstChild("Zombie Mushroom")
+    }
+}
+
+game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
+ task.wait(1)
+
+local args = {
+    [1] = "Attack",
+    [2] = "Strike",
+    [3] = {
+        ["Attacking"] = workspace.Living:FindFirstChild("Slime")
+    }
+}
+
+game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
+  task.wait(1)
+
+local args = {
     [1] = "Attack",
     [2] = "Strike",
     [3] = {
