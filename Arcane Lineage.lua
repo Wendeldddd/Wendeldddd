@@ -293,20 +293,7 @@ local Combat = Window:MakeTab({
     PremiumOnly = false
 })
 
-Combat:AddToggle({
-    Name = "Auto-Dodge",
-    Default = false,
-    Save = true,
-    Flag = "AutoDodge",
-    Callback = function(Value)
-            getgenv().AutoDodge = (Value)  -- Define a variável global AutoDodge
 
-            -- Loop enquanto o Auto-Dodge estiver ativado e o jogador estiver em combate
-            while AutoDodge do
-                    
-            end
-        
-})
 Combat:AddToggle({
     Name = "Auto-Attack",
     Default = false,
