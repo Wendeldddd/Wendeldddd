@@ -284,100 +284,6 @@ PlayerSec:AddButton({
     end
 })
 
-PlayerSec:AddToggle({
-    Name = "Enable Walkspeed",
-    Default = false,
-    Callback = function(Value)
-        Walkspeeder = Value
-        while Walkspeeder do
-            task.wait()
-            if Walkspeeder then
-                lp.Character.Humanoid.WalkSpeed = CurrentWalkspeed
-            elseif not Walkspeeder then
-                lp.Character.Humanoid.WalkSpeed = orgwalk
-                task.wait()
-            end
-        end
-    end
-})
-
-PlayerSec:AddSlider({
-    Name = "Walkspeed",
-    Min = 16,
-    Max = 250,
-    Default = 16,
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = 1,
-    ValueName = "Walkspeed",
-    Callback = function(Value)
-        CurrentWalkspeed = Value
-        if Walkspeeder then
-            lp.Character.Humanoid.WalkSpeed = Value
-        end
-    end
-})
-
-PlayerSec:AddToggle({
-    Name = "Enable Run Speed Modifier",
-    Default = false,
-    Callback = function(Value)
-        RunBuffer = Value
-        while RunBuffer do
-            task.wait()
-            if RunBuffer then
-                workspace.Living[lp.Name].Effects.RunBuff.Value = CurrentRunBuff
-            elseif not RunBuffer then
-                workspace.Living[lp.Name].Effects.RunBuff.Value = runbuff
-                task.wait()
-            end
-        end
-    end
-})
-
-PlayerSec:AddSlider({
-    Name = "Run Speed Modifier",
-    Min = tonumber(runbuff),
-    Max = 100,
-    Default = tonumber(runbuff),
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = 1,
-    ValueName = "Run Speed",
-    Callback = function(Value)
-        CurrentRunBuff = Value
-        if RunBuffer then
-            workspace.Living[lp.Name].Effects.RunBuff = Value
-        end
-    end
-})
-
-PlayerSec:AddToggle({
-    Name = "Enable JumpPower",
-    Default = false,
-    Callback = function(Value)
-        JumpPowerr = Value
-        if Value then
-            lp.Character.Humanoid.JumpPower = CurrentJumpPower
-        elseif not Value then
-            lp.Character.Humanoid.JumpPower = orgjump
-        end
-    end
-})
-
-PlayerSec:AddSlider({
-    Name = "JumpPower",
-    Min = tonumber(lp.Character.Humanoid.JumpPower),
-    Max = 250,
-    Default = tonumber(lp.Character.Humanoid.JumpPower),
-    Color = Color3.fromRGB(255, 0, 0),
-    Increment = 1,
-    ValueName = "JumpPower",
-    Callback = function(Value)
-        CurrentJumpPower = Value
-        if JumpPowerr then
-            lp.Character.Humanoid.JumpPower = Value
-        end
-    end
-})
 
 -- Combat
 
@@ -393,115 +299,13 @@ Combat:AddToggle({
     Save = true,
     Flag = "AutoDodge",
     Callback = function(Value)
-        if not AutoBlock then  -- Verifica se o Auto-Block está desativado
             getgenv().AutoDodge = (Value)  -- Define a variável global AutoDodge
 
             -- Loop enquanto o Auto-Dodge estiver ativado e o jogador estiver em combate
             while AutoDodge do
-                -- Verifica se o jogador está em combate
-                if game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value == true then
-                    task.wait(0.1)  -- Aguarda um pequeno intervalo antes de realizar o Dodge
-
-                    -- Envia os parâmetros para o servidor para realizar o Dodge
-                    local ohTable1 = { [1] = true, [2] = true }
-                    local ohString2 = "DodgeMinigame"
-                    game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohTable1, ohString2)
-                else
-                    break  -- Sai do loop se não estiver em combate
-                end
-                task.wait(0.5)  -- Aguarda 0.5 segundos antes de tentar novamente
+                    
             end
-        else
-            -- Notifica o jogador para desativar o Auto-Block antes de usar o Auto-Dodge
-            OrionLib:MakeNotification({
-                Name = "Warning:",
-                Content = "Disable Auto-Block and Re-Enable this to use it",
-                Image = "rbxassetid://12614663538",
-                Time = 5
-            })
-        end
-    end
-})
-
-Combat:AddToggle({
-    Name = "Auto-Block",
-    Default = false,
-    Save = true,
-    Flag = "AutoBlock",
-    Callback = function(Value)
-        if not AutoDodge then
-            getgenv().AutoBlock = (Value)
-
-            while AutoBlock and game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress") do
-                task.wait()
-                local ohTable1 = {
-                    [1] = true,
-                    [2] = false
-                }
-                local ohString2 = "DodgeMinigame"
-
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohTable1, ohString2)
-                task.wait()
-            end
-        else
-            OrionLib:MakeNotification({
-                Name = "Warning:",
-                Content = "Disable Auto-Dodge and Re-Enable this to use it",
-                Image = "rbxassetid://12614663538",
-                Time = 5
-            })
-        end
-    end
-})
-
-Combat:AddToggle({
-    Name = "Auto-QTE",
-    Default = false,
-    Save = true,
-    Flag = "AutoQTE",
-    Callback = function(Value)
-        getgenv().AutoQTE = (Value)
-        local BaseClass = lp.PlayerGui.StatMenu.Holder.ContentFrame.Stats.Body.RightColumn.Content.BaseClass.Type.Text
-
-        while AutoQTE and game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress") do
-            task.wait()
-
-            -- Wizard
-            if BaseClass == "Wizard" then
-                local ohBoolean1 = true
-                local ohString2 = "MagicQTE"
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohBoolean1, ohString2)
-                lp.PlayerGui.Combat.MagicQTE.Visible = false
-
-                -- Thief
-            elseif BaseClass == "Thief" then
-                local ohBoolean1 = true
-                local ohString2 = "DaggerQTE"
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohBoolean1, ohString2)
-                lp.PlayerGui.Combat.DaggerQTE.Visible = false
-
-                -- Slayer
-            elseif BaseClass == "Slayer" then
-                local ohBoolean1 = true
-                local ohString2 = "SpearQTE"
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohBoolean1, ohString2)
-                lp.PlayerGui.Combat.SpearQTE.Visible = false
-                -- Fist
-            elseif BaseClass == "Martial Artist" then
-                local ohBoolean1 = true
-                local ohString2 = "FistQTE"
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohBoolean1, ohString2)
-                lp.PlayerGui.Combat.FistQTE.Visible = false
-                -- Sword
-            elseif BaseClass == "Warrior" then
-                local ohBoolean1 = true
-                local ohString2 = "SwordQTE"
-                game:GetService("ReplicatedStorage").Remotes.Information.RemoteFunction:FireServer(ohBoolean1, ohString2)
-                lp.PlayerGui.Combat.SwordQTE.Visible = false
-                task.wait()
-            end
-        end
-    end
+        
 })
 Combat:AddToggle({
     Name = "Auto-Attack",
@@ -513,7 +317,7 @@ Combat:AddToggle({
 
         -- Loop contínuo enquanto Auto-Attack estiver ativado
         while AutoAttack do
-            task.wait(1.1)  -- Aguarda 1.1 segundos entre cada ataque
+            task.wait(2)  
 
             -- Ataca o Slime
             local Args = {
@@ -534,6 +338,16 @@ Combat:AddToggle({
                 }
             }
             game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(Args))
+                    local args = {
+    [1] = "Attack",
+    [2] = "Strike",
+    [3] = {
+        ["Attacking"] = workspace.Living:FindFirstChild("Grass Spirit")
+    }
+}
+
+game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
+                    task.wait(0.1)
         end
     end
 })
