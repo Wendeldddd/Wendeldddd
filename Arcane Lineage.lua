@@ -297,110 +297,88 @@ local Combat = Window:MakeTab({
 Combat:AddToggle({
     Name = "Auto-Attack",
     Default = false,
-    Save = true,
-    Flag = "AutoAttack",
     Callback = function(Value)
-        getgenv().AutoAttack = Value  -- Define a variável global AutoAttack
-            local function getAttacks()
-    local Attacks = {}
-    for _,v in pairs(player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame:GetChildren()) do
-        if v:IsA('TextButton') then
-            table.insert(Attacks, v.Name)
-        end
-    end
-    return Attacks
-end
-task.spawn(LPH_JIT_MAX(function()
-    while task.wait() do
-        if Toggles.InfEnergy.Value then
-            if tonumber(player.Character.Status.Energy.Value) ~= 6 then
-                player.PlayerGui.Combat.CombatHandle.Meditate:FireServer()
-            end
-        end
-    end
-end))
+        getgenv().AutoAttack = (Value)
 
-local skillConstants = require(ReplicatedStorage.Constants)
-function IsSelfTargetSkill(skillName)
-    local skillData = skillConstants.Skills[skillName]
-    if (skillData and skillData.SelfTarget) then
-        return true
-    end
+        pcall(function()
+            local function performAttack(target)
+                local ohString1 = "Attack"
+                local ohString2 = tostring(MoveToUse)
+                local ohTable3 = {
+                    ["Attacking"] = target
+                }
 
-    return false
-end
+                local energyText = lp.PlayerGui.HUD.Holder.EnergyOutline.Count.Text
+                local slashPos = string.find(energyText, "/")
+                local energy = tonumber(string.sub(energyText, 1, slashPos - 1))
 
-local Attacks = getAttacks()
-local function attackEntity(initTarget)
-    pcall(function()
-        local selectedAttacks = AttackSelectorInstance:GetSelectedAttacks()
-        local selectedAttacksTable = {}
+                if energy >= tonumber(lp.PlayerGui.StatMenu.SkillMenu.Actives[MoveToUse].Cost.Text) then
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
 
-        for _, attackIndex in ipairs(selectedAttacks) do
-            local attackName = Attacks[attackIndex]
-            table.insert(selectedAttacksTable, { Name = attackName, Index = attackIndex })
-        end
-        --[[local concatenatedAttacks = table.concat(selectedAttacksTable, ", ")
-        Library:Notify("Selected Attacks: " .. concatenatedAttacks)]]
-        task.wait(1)
-
-        for _, attackInfo in ipairs(selectedAttacksTable) do
-
-            local attackTarget = initTarget
-            if player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame:FindFirstChild(attackInfo.Name) then
-                if (player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame[attackInfo.Name]:FindFirstChild('CD')
-                and not player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame[attackInfo.Name]:FindFirstChild('CD').Visible) then
-                    debug(attackInfo.Name .. " is not on cooldown")
-                    if IsSelfTargetSkill(attackInfo.Name) then
-                        attackTarget = player.Character
-                        debug(attackInfo.Name .. " is a self-target attack")
-                    else
-                        debug(attackInfo.Name .. " isn't a self-target attack")
-                    end
-                    pcall(function()
-                        player.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(
-                            "Attack", attackInfo.Name, { ["Attacking"] = attackTarget }
-                        )
-                    end)
+                    task.wait(1.5)
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+                    task.wait(0.5)
+                    local ohString11 = "Attack"
+                    local ohString22 = "Strike"
+                    local ohTable33 = {
+                        ["Attacking"] = target
+                    }
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString11, ohString22, ohTable33)
                 else
-                    debug(attackInfo.Name .. " CD not found")
+                    local ohString1 = "Attack"
+                    local ohString2 = "Strike"
+                    local ohTable3 = {
+                        ["Attacking"] = target
+                    }
+                    lp.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(ohString1, ohString2, ohTable3)
+                    task.wait()
                 end
             end
-        end
-    end)
-            function attack()
-    pcall(function()
-        local fightID = (player.Character:FindFirstChild('FightInProgress') and tostring(player.Character:FindFirstChild('FightInProgress').Value))
-        if fightID then
-            local fightFolder = ReplicatedStorage.Fights:FindFirstChild(fightID)
-            if fightFolder then
-                local currentTurn = fightFolder:FindFirstChild('CurrentTurn')
-                if (currentTurn and tostring(currentTurn.Value) == player.Name) then
-                    local target = findTarget(fightID, Options.AttackMethod.Value)
-                    if target then
-                        debug("Attacking " .. target.Name)
-                        attackEntity(target)
-                    else
-                        debug('No target found!')
+
+            if AutoAttack then
+                OrionLib:MakeNotification({
+                    Name = "Warning:",
+                    Content =
+                    "If the auto attack doesn't work in the first fight after you enable it simply re-enable it and it should work from then on!",
+                    Image = "rbxassetid://12614663538",
+                    Time = 10
+                })
+                while AutoAttack do
+                    task.wait()
+                    checkforfight()
+                    task.wait(1.1)
+                    if Boolerean == true then
+                        local enemiesToAttack = {}
+                        for _, Enemies in next, game:GetService("Workspace").Living:GetDescendants() do
+                            if Enemies:IsA("IntValue") and Enemies.Value == game:GetService("Workspace").Living[lp.Name]:WaitForChild("FightInProgress").Value and Enemies.Parent.Name ~= lp.Name then
+                                table.insert(enemiesToAttack, Enemies.Parent.Name)
+
+                                for _, enemyName in ipairs(enemiesToAttack) do
+                                    local enemy = game:GetService("Workspace").Living[enemyName]
+                                    if enemy then
+                                        performAttack(enemy)
+                                    end
+                                    task.wait()
+                                end
+                            end
+                        end
                     end
                 end
             end
-        end
-    end)
-end
-
-task.spawn(LPH_JIT_MAX(function()
-    while task.wait(0.05) do
-        if Toggles.AutoEscape.Value then
-            pcall(function()
-                player.PlayerGui.Combat.CombatHandle.Escape:FireServer()
-            end)
-        end
-        if Toggles.AutoAttack.Value then
-            attack()
-        end
+        end)
     end
-end))
+})
+
+Combat:AddDropdown({
+    Name = "Auto-Attack Move",
+    Default = "",
+    Options = Moves,
+    Callback = function(Value)
+        MoveToUse = Value
+    end
+})
+
+                    
 
 -- Automation
 
