@@ -301,14 +301,74 @@ Combat:AddToggle({
     Flag = "AutoAttack",
     Callback = function(Value)
         getgenv().AutoAttack = Value  -- Define a variável global AutoAttack
+            local function getAttacks()
+    local Attacks = {}
+    for _,v in pairs(player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame:GetChildren()) do
+        if v:IsA('TextButton') then
+            table.insert(Attacks, v.Name)
+        end
+    end
+    return Attacks
+end
+task.spawn(LPH_JIT_MAX(function()
+    while task.wait() do
+        if Toggles.InfEnergy.Value then
+            if tonumber(player.Character.Status.Energy.Value) ~= 6 then
+                player.PlayerGui.Combat.CombatHandle.Meditate:FireServer()
+            end
+        end
+    end
+end))
+
+local skillConstants = require(ReplicatedStorage.Constants)
+function IsSelfTargetSkill(skillName)
+    local skillData = skillConstants.Skills[skillName]
+    if (skillData and skillData.SelfTarget) then
+        return true
+    end
+
+    return false
+end
+
+local Attacks = getAttacks()
+local function attackEntity(initTarget)
+    pcall(function()
+        local selectedAttacks = AttackSelectorInstance:GetSelectedAttacks()
+        local selectedAttacksTable = {}
+
+        for _, attackIndex in ipairs(selectedAttacks) do
+            local attackName = Attacks[attackIndex]
+            table.insert(selectedAttacksTable, { Name = attackName, Index = attackIndex })
+        end
+        --[[local concatenatedAttacks = table.concat(selectedAttacksTable, ", ")
+        Library:Notify("Selected Attacks: " .. concatenatedAttacks)]]
+        task.wait(1)
+
+        for _, attackInfo in ipairs(selectedAttacksTable) do
+
+            local attackTarget = initTarget
+            if player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame:FindFirstChild(attackInfo.Name) then
+                if (player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame[attackInfo.Name]:FindFirstChild('CD')
+                and not player.PlayerGui.Combat.ActionBG.AttacksPage.ScrollingFrame[attackInfo.Name]:FindFirstChild('CD').Visible) then
+                    debug(attackInfo.Name .. " is not on cooldown")
+                    if IsSelfTargetSkill(attackInfo.Name) then
+                        attackTarget = player.Character
+                        debug(attackInfo.Name .. " is a self-target attack")
+                    else
+                        debug(attackInfo.Name .. " isn't a self-target attack")
+                    end
+                    pcall(function()
+                        player.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(
+                            "Attack", attackInfo.Name, { ["Attacking"] = attackTarget }
+                        )
+                    end)
                 else
                     debug(attackInfo.Name .. " CD not found")
                 end
             end
         end
     end)
-end
-function attack()
+            function attack()
     pcall(function()
         local fightID = (player.Character:FindFirstChild('FightInProgress') and tostring(player.Character:FindFirstChild('FightInProgress').Value))
         if fightID then
@@ -341,7 +401,6 @@ task.spawn(LPH_JIT_MAX(function()
         end
     end
 end))
-        
 
 -- Automation
 
