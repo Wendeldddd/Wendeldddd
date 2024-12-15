@@ -301,55 +301,46 @@ Combat:AddToggle({
     Flag = "AutoAttack",
     Callback = function(Value)
         getgenv().AutoAttack = Value  -- Define a variável global AutoAttack
+                else
+                    debug(attackInfo.Name .. " CD not found")
+                end
+            end
+        end
+    end)
+end
+function attack()
+    pcall(function()
+        local fightID = (player.Character:FindFirstChild('FightInProgress') and tostring(player.Character:FindFirstChild('FightInProgress').Value))
+        if fightID then
+            local fightFolder = ReplicatedStorage.Fights:FindFirstChild(fightID)
+            if fightFolder then
+                local currentTurn = fightFolder:FindFirstChild('CurrentTurn')
+                if (currentTurn and tostring(currentTurn.Value) == player.Name) then
+                    local target = findTarget(fightID, Options.AttackMethod.Value)
+                    if target then
+                        debug("Attacking " .. target.Name)
+                        attackEntity(target)
+                    else
+                        debug('No target found!')
+                    end
+                end
+            end
+        end
+    end)
+end
 
-        -- Loop contínuo enquanto Auto-Attack estiver ativado
-        while AutoAttack do
-                local args = {
-    [1] = "Attack",
-    [2] = "Strike",
-    [3] = {
-        ["Attacking"] = workspace.Living:FindFirstChild("Thief")
-    }
-}
-
-game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
-  task.wait(1)
-
-local args = {
-    [1] = "Attack",
-    [2] = "Strike",
-    [3] = {
-        ["Attacking"] = workspace.Living:FindFirstChild("Zombie Mushroom")
-    }
-}
-
-game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
- task.wait(1)
-
-local args = {
-    [1] = "Attack",
-    [2] = "Strike",
-    [3] = {
-        ["Attacking"] = workspace.Living:FindFirstChild("Slime")
-    }
-}
-
-game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
-  task.wait(1)
-
-local args = {
-    [1] = "Attack",
-    [2] = "Strike",
-    [3] = {
-        ["Attacking"] = workspace.Living:FindFirstChild("Grass Spirit")
-    }
-}
-
-game:GetService("Players").LocalPlayer.PlayerGui.Combat.CombatHandle.RemoteFunction:InvokeServer(unpack(args))
-                    task.wait(0.1)
+task.spawn(LPH_JIT_MAX(function()
+    while task.wait(0.05) do
+        if Toggles.AutoEscape.Value then
+            pcall(function()
+                player.PlayerGui.Combat.CombatHandle.Escape:FireServer()
+            end)
+        end
+        if Toggles.AutoAttack.Value then
+            attack()
         end
     end
-})
+end))
         
 
 -- Automation
